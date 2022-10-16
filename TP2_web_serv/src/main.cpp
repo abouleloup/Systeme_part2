@@ -13,7 +13,6 @@ AsyncWebServer server(80);
 
 const char* ssid = "mohamed";
 const char* password = "1234momo";
-
 const char* PARAM_MESSAGE = "message";
 
 void notFound(AsyncWebServerRequest *request) {
@@ -165,17 +164,18 @@ void loop() {
 #include <AsyncTCP.h>
 #include <DHT.h>
 #include <ESPAsyncWebServer.h>
+#include <LittleFS.h>
 #include <WiFi.h>
-#include "LittleFS.h"
+#include <Wire.h>
 
-#define LED 32
+#define BUTTON 32
 #define DHTPIN 26
 #define DHTTYPE DHT11
+#define LED 4
+#define LED_CLIENT 2
 
 const char* ssid = "mohamed";
 const char* password = "1234momo";
-
-const char* PARAM_MESSAGE = "message";
 
 boolean ledState = false;
 
@@ -183,6 +183,7 @@ AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
 
 DHT dht(DHTPIN, DHTTYPE);
+
 
 void listAllFiles() {
   File root = LittleFS.open("/");
@@ -204,12 +205,15 @@ void notifyClients() {
 
   DynamicJsonDocument doc(256);
 
-  doc["LED"] = ledState;
-  doc["TEMPERATURE"] = temperature;
-  doc["HUMIDITY"] = humidity;
+  doc["button"] = digitalRead(BUTTON);
+  doc["led"] = ledState;
+  doc["temperature"] = temperature;
+  doc["humidity"] = humidity;
 
   char json_string[256];
   serializeJson(doc, json_string);
+
+  Serial.println(json_string);
 
   ws.textAll(json_string);
 }
@@ -219,6 +223,9 @@ void handleWebSocketMessage(void* arg, uint8_t* data, size_t len) {
   if (info->final && info->index == 0 && info->len == len &&
       info->opcode == WS_TEXT) {
     data[len] = 0;
+
+    Serial.println((char*)data);
+
     if (strcmp((char*)data, "toggle") == 0) {
       ledState = !ledState;
       notifyClients();
@@ -255,16 +262,22 @@ void notFound(AsyncWebServerRequest* request) {
 
 void setup() {
   Serial.begin(115200);
+  Wire.begin(21, 22);
 
   dht.begin();
 
+  pinMode(BUTTON, INPUT);
   pinMode(LED, OUTPUT);
+  pinMode(LED_CLIENT, OUTPUT);
 
   // Initialize SPIFFS
   if (!LittleFS.begin(true)) {
     Serial.println("An Error has occurred while mounting SPIFFS");
     return;
   }
+
+  delay(250);
+
 
   Serial.println("\n\n----Listing files----");
   listAllFiles();
@@ -299,13 +312,18 @@ void setup() {
   server.onNotFound(notFound);
   server.addHandler(&ws);
   server.begin();
+
+ 
 }
 
 void loop() {
   if (ws.count()) {
+    digitalWrite(LED_CLIENT, HIGH);
     notifyClients();
+  } else {
+    digitalWrite(LED_CLIENT, LOW);
   }
-
+  
   digitalWrite(LED, ledState);
 
   ws.cleanupClients();

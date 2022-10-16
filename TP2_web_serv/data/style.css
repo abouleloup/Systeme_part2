@@ -1,0 +1,113 @@
+*,
+*:before,
+*:after {
+  padding: none;
+  border: none;
+  box-sizing: border-box;
+  vertical-align: baseline;
+  font-size: 100%;
+  font: inherit;
+}
+
+html {
+  font-family: -apple-system, ".SFNSText-Regular", "Helvetica Neue", "Roboto", "Segoe UI", sans-serif;
+  scroll-behavior: smooth;
+}
+
+body {
+  padding: 2rem;
+}
+
+h1 {
+  margin-bottom: -0.3rem;
+  font-size: 3.0rem;
+}
+
+h2 {
+  margin-bottom: 4rem;
+  font-size: 1.5rem;
+}
+
+.item {
+  margin-bottom: 2rem;
+  font-size: 3.0rem;
+}
+
+.units {
+  font-size: 1.5rem;
+  vertical-align: top;
+}
+
+.dht-labels {
+  font-size: 1.5rem;
+}
+
+.button {
+  background-color: #4CAF50;
+  border: none;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+}
+
+.toggle {
+  cursor: pointer;
+  display: inline-block;
+}
+
+.toggle-switch {
+  display: inline-block;
+  background: #ccc;
+  border-radius: 16px;
+  width: 58px;
+  height: 32px;
+  position: relative;
+  vertical-align: middle;
+  transition: background 0.25s;
+}
+
+.toggle-switch:before,
+.toggle-switch:after {
+  content: "";
+}
+
+.toggle-switch:before {
+  display: block;
+  background: linear-gradient(to bottom, #fff 0%, #eee 100%);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
+  width: 24px;
+  height: 24px;
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  transition: left 0.25s;
+}
+
+.toggle:hover .toggle-switch:before {
+  background: linear-gradient(to bottom, #fff 0%, #fff 100%);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
+}
+
+.toggle-checkbox:checked+.toggle-switch {
+  background: #56c080;
+}
+
+.toggle-checkbox:checked+.toggle-switch:before {
+  left: 30px;
+}
+
+.toggle-checkbox {
+  position: absolute;
+  visibility: hidden;
+}
+
+.toggle-label {
+  margin-left: 5px;
+  position: relative;
+  vertical-align: middle;
+  font-size: 1.5rem;
+}
