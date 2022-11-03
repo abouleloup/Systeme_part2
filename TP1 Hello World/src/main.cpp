@@ -11,7 +11,7 @@ DHT dht(DHT11PIN, DHT11);
 void setup() {
   pinMode(LED,OUTPUT);
   pinMode(Bp1,INPUT_PULLUP);
-  Serial.begin(9600);
+  Serial.begin(115200);
   dht.begin();
 
 }
