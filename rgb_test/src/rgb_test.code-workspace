@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"name": "ultrason_test",
+			"path": "../../ultrason_test"
+		}
+	],
+	"settings": {}
+}
