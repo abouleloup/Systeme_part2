@@ -1,0 +1,208 @@
+#include <Arduino.h>
+#include <Adafruit_Sensor.h>
+#include <DHT.h>
+#include <DHT_U.h>
+#include <AdafruitIO_WiFi.h>
+#include <Adafruit_MQTT.h>
+
+
+#define IO_USERNAME  "mhd11"
+#define IO_KEY       "aio_QWtP26KbdtagI6UleFCehXWGv828"
+#define WIFI_SSID  "Sakina"
+#define WIFI_PASS  "cartable12"
+
+AdafruitIO_WiFi io (IO_USERNAME,IO_KEY,WIFI_SSID, WIFI_PASS);
+
+
+
+
+// Adafruit IO Publish & Subscribe, Digital Input and Output Example
+//
+// Adafruit invests time and resources providing this open source code.
+// Please support Adafruit and open source hardware by purchasing
+// products from Adafruit!
+//
+// Written by Todd Treece for Adafruit Industries
+// Modified by Brent Rubell for Adafruit Industries
+// Copyright (c) 2020 Adafruit Industries
+// Licensed under the MIT license.
+//
+// All text above must be included in any redistribution.
+
+/************************** Configuration ***********************************/
+
+// edit the config.h tab and enter your Adafruit IO credentials
+// and any additional configuration needed for WiFi, cellular,
+// or ethernet clients.
+
+
+/************************ Example Starts Here *******************************/
+
+
+// analog pin 0
+#define PHOTOCELL_PIN 32
+
+// photocell state
+int current = 0;
+int last = -1;
+
+// set up the 'analog' feed
+AdafruitIO_Feed *analog = io.feed("analog");
+
+// Button Pin
+#define BUTTON_PIN 12
+
+// button state
+bool btn_state = false;
+bool prv_btn_state = false;
+
+// LED Pin
+#define LED_PIN 2 
+
+
+// pin connected to DH11 data line
+#define DATA_PIN 26
+
+// create DHT11 instance
+DHT_Unified dht(DATA_PIN, DHT11);
+
+// set up the 'temperature' and 'humidity' feeds
+AdafruitIO_Feed *temperature = io.feed("temperature");
+AdafruitIO_Feed *humidity = io.feed("humidity");
+
+// set up the 'led' feed
+AdafruitIO_Feed *led = io.feed("led");
+
+// set up the 'button' feed
+AdafruitIO_Feed *button = io.feed("button");
+
+
+// this function is called whenever a 'led' message
+// is received from Adafruit IO. it was attached to
+// the counter feed in the setup() function above.
+void handleMessage(AdafruitIO_Data *data) {
+  Serial.print("received <- ");
+
+  if(data->toPinLevel() == HIGH)
+    Serial.println("HIGH");
+  else
+    Serial.println("LOW");
+
+  digitalWrite(LED_PIN, data->toPinLevel());
+
+}
+
+
+void setup() {
+
+  // set button pin as an input
+  pinMode(BUTTON_PIN, INPUT);
+
+  // set LED pin as an output
+  pinMode(LED_PIN, OUTPUT);
+
+  // start the serial connection
+  Serial.begin(115200);
+
+  // wait for serial monitor to open
+  while(!Serial);
+
+  Serial.print("Connecting to Adafruit IO");
+
+  // initialize dht11
+  dht.begin();
+
+  // connect to io.adafruit.com
+  io.connect();
+
+  // set up a message handler for the count feed.
+  // the handleMessage function (defined below)
+  // will be called whenever a message is
+  // received from adafruit io.
+  led->onMessage(handleMessage);
+
+  // wait for a connection
+  while(io.status() < AIO_CONNECTED) {
+    Serial.print(".");
+    delay(500);
+  }
+
+  // we are connected
+  Serial.println();
+  Serial.println(io.statusText());
+  led->get();
+ 
+  
+
+}
+
+void loop() {
+
+  // io.run(); is required for all sketches.
+  // it should always be present at the top of your loop
+  // function. it keeps the client connected to
+  // io.adafruit.com, and processes any incoming data.
+  io.run();
+
+  // grab the btn_state state of the button.
+  if(digitalRead(BUTTON_PIN) == LOW)
+    btn_state = false;
+  else
+    btn_state = true;
+
+  // return if the btn state hasn't changed
+  if(btn_state == prv_btn_state)
+    return;
+
+  // save the btn_state state to the 'button' feed on adafruit io
+  Serial.print("sending button -> "); Serial.println(btn_state);
+  button->save(btn_state);
+
+  // store last button state
+  prv_btn_state = btn_state;
+
+  
+  sensors_event_t event;
+  dht.temperature().getEvent(&event);
+
+  Serial.print("celsius: ");
+  Serial.print(event.temperature);
+  Serial.println("C");
+
+
+  // celsius to Adafruit IO
+  temperature->save(event.temperature);
+
+  dht.humidity().getEvent(&event);
+
+  Serial.print("humidity: ");
+  Serial.print(event.relative_humidity);
+  Serial.println("%");
+
+  // save humidity to Adafruit IO
+  humidity->save(event.relative_humidity);
+
+   // grab the current state of the photocell
+  current = analogRead(PHOTOCELL_PIN);
+
+  // return if the value hasn't changed
+  if(current == last)
+    return;
+  
+  // save the current state to the analog feed
+  Serial.print("sending -> ");
+  Serial.println(current);
+  analog->save(current);
+
+  // store last photocell state
+  last = current;
+
+  // wait 5 seconds (5000 milliseconds == 5 seconds)
+  delay(2000);
+
+  
+
+
+
+}
+
