@@ -3,9 +3,6 @@
 #include <DHT_U.h>
 #include <Adafruit_Sensor.h>
 #include <Wire.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
-#include <Adafruit_MPU6050.h>
 #include <WiFi.h>
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
@@ -52,7 +49,6 @@ int value = 0;
 
 #define DHT11PIN 26
 #define LED 5
-#define LED2 4
 #define LDR 33
 
 
@@ -156,7 +152,6 @@ void setup() {
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
   pinMode(LED,OUTPUT);
-  pinMode(LED2, OUTPUT);
   Serial.begin(115200);
   dht.begin();
 
